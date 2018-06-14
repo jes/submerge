@@ -7,6 +7,9 @@ use Mojolicious::Lite;
 use Mojo::UserAgent;
 use Mojo::Util qw(url_escape);
 
+# TODO: either derive this at runtime or get it from config file
+my $BASE_URL = 'http://localhost:3000';
+
 my $ua = Mojo::UserAgent->new();
 
 # URLS like /feeds/videos.xml?channel_id=UCzr30osBdTmuFUS8IfXtXmg
@@ -19,7 +22,14 @@ get '/feeds/videos.xml' => sub {
     $ua->get('https://www.youtube.com/feeds/videos.xml?channel_id=' . url_escape($channel_id) => sub {
         my ($ua, $tx) = @_;
         my $body = $tx->res->body;
+
+        # processing xml with regex ftw
         $body =~ s/youtube\.com/hooktube.com/g;
+        my $this_url = $c->req->url;
+        $body =~ s/<link rel=\"self\" href=\"[^"]*\"\/>/<link rel="self" href="$BASE_URL$this_url"\/>/g;
+
+        # TODO: replace URLs like https://i3.ytimg.com/vi/nD_6YEXFJ1c/hqdefault.jpg with something that we proxy
+
         $c->res->headers->content_type($tx->res->headers->content_type);
         return $c->render(status => $tx->res->code, data => $body);
     });
