@@ -1,4 +1,4 @@
-# submerge
+# Submerge
 
 ## Description
 
@@ -6,7 +6,7 @@ There's lots of good content on YouTube, but actively using YouTube allows Googl
 
 [HookTube](https://hooktube.com/) is an alternative YouTube user interface that lets you watch the videos with less of the tracking, but HookTube doesn't yet support subscriptions.
 
-Submerge lets you subscribe to YouTube channels with player links going directly to HookTube.
+Submerge lets you subscribe to YouTube channels, with the player links going directly to HookTube.
 
 ## Roadmap
 
@@ -19,6 +19,12 @@ Next steps are:
 2. A way to combine several feeds together so that you can subscribe to multiple channels with just one URL.
 
 3. A user interface to browse your subscriptions without having to go via the RSS reader.
+
+Longer-term goals would include:
+
+* a caching layer so that popular requests don't get the public instance banned from YouTube
+
+* make it easy for people to run a private instance so that the public instance doesn't accumulate too much data to track people with
 
 ## Installation
 
