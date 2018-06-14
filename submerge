@@ -6,13 +6,20 @@ use warnings;
 use Mojolicious::Lite;
 use Mojo::UserAgent;
 use Mojo::Util qw(url_escape);
+use YAML;
 
-# TODO: either derive this at runtime or get it from config file
-my $BASE_URL = 'http://localhost:3000';
+# production.yaml or development.yaml
+my $config_file = app->mode . ".yaml";
+die "Can't read from submerge config file ($config_file), start by copying the default development.yaml\n"
+    unless -r $config_file;
+my $config = YAML::LoadFile($config_file);
+
+die "base_url is missing from submerge config file ($config_file)"
+    unless defined $config->{base_url};
 
 my $ua = Mojo::UserAgent->new();
 
-# URLS like /feeds/videos.xml?channel_id=UCzr30osBdTmuFUS8IfXtXmg
+# URLs like /feeds/videos.xml?channel_id=UCzr30osBdTmuFUS8IfXtXmg
 # We're just copying the YouTube URL format
 get '/feeds/videos.xml' => sub {
     my ($c) = @_;
@@ -26,13 +33,75 @@ get '/feeds/videos.xml' => sub {
         # processing xml with regex ftw
         $body =~ s/youtube\.com/hooktube.com/g;
         my $this_url = $c->req->url;
-        $body =~ s/<link rel=\"self\" href=\"[^"]*\"\/>/<link rel="self" href="$BASE_URL$this_url"\/>/g;
+        $body =~ s/<link rel=\"self\" href=\"[^"]*\"\/>/<link rel="self" href="$config->{base_url}$this_url"\/>/g;
 
         # TODO: replace URLs like https://i3.ytimg.com/vi/nD_6YEXFJ1c/hqdefault.jpg with something that we proxy
+        # so as not to leak IP addresses to Google when people view thumbnails
 
         $c->res->headers->content_type($tx->res->headers->content_type);
         return $c->render(status => $tx->res->code, data => $body);
     });
+};
+
+get '/' => sub {
+    my ($c) = @_;
+
+    if ($config->{public}) {
+        return $c->render('public_index');
+    } else {
+        return $c->render('private_index');
+    }
+};
+
+get '/submerge' => sub { shift->redirect_to('/'); };
+
+post '/submerge' => sub {
+    my ($c) = @_;
+
+    my $url = scalar $c->param('url');
+    $url =~ s/^\s*//;
+    $url =~ s/\s*$//;
+
+    # TODO: in all cases, check that the generated rss feed looks sound (even if there are no videos) before giving it to the user
+
+    # channel url - just extract the channel id from the url
+    if ($url =~ m{^https?://(?:www\.)?(?:youtube|hooktube)\.com/channel/([^/]*)/?$}i) {
+        return $c->redirect_to('/feeds/videos.xml?channel_id=' . url_escape($1));
+    }
+
+    # user page url - fetch the page and extract the channel id from the "canonical" url
+    if ($url =~ m{^https?://(?:www\.)?(?:youtube|hooktube)\.com/user/([^/]*)/?$}i) {
+        # make sure to fetch from youtube.com to learn the "canonical" url
+        $url =~ s/hooktube\.com/youtube.com/gi;
+        $ua->get($url => sub {
+            my ($ua, $tx) = @_;
+
+            if ($tx->res->body =~ m{<link rel="canonical" href="https?://(?:www\.)?youtube\.com/channel/([^/"]*)/?"}i) {
+                return $c->redirect_to('/feeds/videos.xml?channel_id=' . url_escape($1));
+            } else {
+                return $c->render(text => "Error - couldn't find canonical URL in channel page");
+            }
+        });
+        return;
+    }
+
+    # video url
+    if ($url =~ m{^https?://(?:www\.)?(?:youtube|hooktube)\.com/watch}i) {
+        # make sure to fetch from youtube.com to learn the channel id
+        $url =~ s/hooktube\.com/youtube.com/gi;
+        $ua->get($url => sub {
+            my ($ua, $tx) = @_;
+
+            if ($tx->res->body =~ m{<meta itemprop="channelId" content="([^"]*)">}) {
+                return $c->redirect_to('/feeds/videos.xml?channel_id=' . url_escape($1));
+            } else {
+                return $c->render(text => "Error - couldn't find channel ID in video page");
+            }
+        });
+        return;
+    }
+
+    return $c->render(text => "Error - don't recognise the input url");
 };
 
 app->start;

@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head>
+<title>Submerge</title>
+</head>
+<body>
+<h1>Submerge</h1>
+<p>Enter a URL for a YouTube video, channel, or channel RSS feed, and you'll get an RSS feed to subscribe to the
+corresponding channel with HookTube.</p>
+<form action="/submerge" method="post">
+<input name="url" type="text">
+<button type="submit">Submit</button>
+</form>
+</body>
+</html>
