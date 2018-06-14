@@ -1,5 +1,7 @@
 # Submerge
 
+Subscribe to your favourite YouTube channels without telling Google.
+
 ## Description
 
 There's lots of good content on YouTube, but actively using YouTube allows Google to track too much personal information.
