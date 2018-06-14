@@ -20,22 +20,22 @@ Next steps are:
 
 3. A user interface to browse your subscriptions without having to go via the RSS reader.
 
-Longer-term goals would include:
+If it gets popular, longer-term goals would include:
 
 * a caching layer so that popular requests don't get the public instance banned from YouTube
 
-* make it easy for people to run a private instance so that the public instance doesn't accumulate too much data to track people with
+* make it easy for people to run a private instance (or even an alternative public instance!) so that my public instance doesn't accumulate too much data to track people with
 
 ## Installation
 
 It's a [Mojolicious](https://mojolicious.org/) application. There's not yet a systemd unit file, but you can run it in
 development mode with:
 
-  morbo submerge
+    morbo submerge
 
 or in production mode with:
 
-  hypnotoad submerge
+    hypnotoad submerge
 
 When running in production mode you'll need to copy development.yaml to production.yaml and edit it accordingly.
 
