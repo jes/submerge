@@ -7,6 +7,7 @@ use warnings;
 use Mojolicious::Lite;
 use Mojo::UserAgent;
 use Mojo::Util qw(url_escape);
+use XML::Feed;
 use YAML;
 
 # config is in production.yaml or development.yaml
@@ -20,28 +21,59 @@ die "base_url is missing from submerge config file ($config_file)"
 
 my $ua = Mojo::UserAgent->new();
 
+hook before_render => sub {
+    my ($c) = @_;
+    $c->stash(config => $config);
+};
+
 # URLs like /feeds/videos.xml?channel_id=UCzr30osBdTmuFUS8IfXtXmg
 # We're just copying the YouTube URL format
 get '/feeds/videos.xml' => sub {
     my ($c) = @_;
 
-    my $channel_id = scalar $c->param('channel_id');
-    
-    $ua->get('https://www.youtube.com/feeds/videos.xml?channel_id=' . url_escape($channel_id) => sub {
-        my ($ua, $tx) = @_;
-        my $body = $tx->res->body;
+    my @channels = split /,/, scalar $c->param('channel_id');
 
-        # processing xml with regex ftw
-        $body =~ s/youtube\.com/hooktube.com/g;
-        my $this_url = $c->req->url;
-        $body =~ s/<link rel=\"self\" href=\"[^"]*\"\/>/<link rel="self" href="$config->{base_url}$this_url"\/>/g;
+    my @feeds;
+    my $nfeeds = 0;
+    my $add_feed = sub {
+        my ($feed) = @_;
 
-        # TODO: replace URLs like https://i3.ytimg.com/vi/nD_6YEXFJ1c/hqdefault.jpg with something that we proxy
-        # so as not to leak IP addresses to Google when people view thumbnails
+        use Data::Dumper;
+        print Dumper($feed);
 
-        $c->res->headers->content_type($tx->res->headers->content_type);
-        return $c->render(status => $tx->res->code, data => $body);
-    });
+        $nfeeds++;
+        push @feeds, $feed if $feed;
+
+        if ($nfeeds == @channels) {
+            # splice all of the feeds into one
+            for my $i (1 .. $nfeeds-1) {
+                $feeds[0]->splice($feeds[$i]);
+            }
+
+            # TODO: if there's more than one feed, rewrite the title to "Submerge feed" or something, instead
+            # of just the first YouTube channel's name.
+
+            $c->res->headers->content_type("application/rss+xml");
+            return $c->render(data => $feeds[0]->as_xml);
+        }
+    };
+
+    for my $channel_id (@channels) {
+        $ua->get('https://www.youtube.com/feeds/videos.xml?channel_id=' . url_escape($channel_id) => sub {
+            my ($ua, $tx) = @_;
+            my $body = $tx->res->body;
+
+            # processing xml with regex ftw
+            $body =~ s/youtube\.com/hooktube.com/g;
+            my $this_url = $c->req->url;
+            $body =~ s/<link rel=\"self\" href=\"[^"]*\"\/>/<link rel="self" href="$config->{base_url}$this_url"\/>/g;
+
+            # TODO: replace URLs like https://i3.ytimg.com/vi/nD_6YEXFJ1c/hqdefault.jpg with something that we proxy
+            # so as not to leak IP addresses to Google when people view thumbnails
+
+            $add_feed->(XML::Feed->parse(\$body));
+        });
+    }
 };
 
 get '/' => sub {
@@ -56,6 +88,13 @@ get '/' => sub {
 
 get '/submerge' => sub { shift->redirect_to('/'); };
 
+sub add_channel {
+    my ($c, $channel_id) = @_;
+
+    $c->session(channels => []) if !$c->session('channels');
+    push @{ $c->session('channels') }, $channel_id;
+}
+
 post '/submerge' => sub {
     my ($c) = @_;
 
@@ -67,7 +106,8 @@ post '/submerge' => sub {
 
     # channel url - just extract the channel id from the url
     if ($url =~ m{^https?://(?:www\.)?(?:youtube|hooktube)\.com/channel/([^/]*)/?$}i) {
-        return $c->redirect_to('/feeds/videos.xml?channel_id=' . url_escape($1));
+        add_channel($c, $1);
+        return $c->redirect_to('/');
     }
 
     # user page url - fetch the page and extract the channel id from the "canonical" url
@@ -78,7 +118,8 @@ post '/submerge' => sub {
             my ($ua, $tx) = @_;
 
             if ($tx->res->body =~ m{<link rel="canonical" href="https?://(?:www\.)?youtube\.com/channel/([^/"]*)/?"}i) {
-                return $c->redirect_to('/feeds/videos.xml?channel_id=' . url_escape($1));
+                add_channel($c, $1);
+                return $c->redirect_to('/');
             } else {
                 return $c->render(text => "Error - couldn't find canonical URL in channel page");
             }
@@ -94,7 +135,8 @@ post '/submerge' => sub {
             my ($ua, $tx) = @_;
 
             if ($tx->res->body =~ m{<meta itemprop="channelId" content="([^"]*)">}) {
-                return $c->redirect_to('/feeds/videos.xml?channel_id=' . url_escape($1));
+                add_channel($c, $1);
+                return $c->redirect_to('/');
             } else {
                 return $c->render(text => "Error - couldn't find channel ID in video page");
             }

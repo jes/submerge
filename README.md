@@ -22,6 +22,10 @@ Next steps are:
 
 3. A user interface to browse your subscriptions without having to go via the RSS reader.
 
+4. Bulk-import subscriptions from YouTube
+
+5. A way to update your subscriptions without having to update the feed URL in the RSS reader.
+
 If it gets popular, longer-term goals would include:
 
 * a caching layer so that popular requests don't get the public instance banned from YouTube
