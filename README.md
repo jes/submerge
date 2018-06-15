@@ -1,6 +1,6 @@
 # Submerge
 
-Subscribe to your favourite YouTube channels without telling Google.
+Subscribe to YouTube channels without telling Google.
 
 ## Description
 
