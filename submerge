@@ -154,5 +154,11 @@ post '/submerge' => sub {
     return $c->render(text => "Error - don't recognise the input url");
 };
 
+post '/clear-subs' => sub {
+    my ($c) = @_;
+    $c->session(channels => undef);
+    return $c->redirect_to('/');
+};
+
 app->config($config->{mojo_config});
 app->start;

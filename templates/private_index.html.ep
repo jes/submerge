@@ -30,6 +30,10 @@ corresponding channel with <a href="https://hooktube.com/">HookTube</a>.</p>
     Your RSS feed is <a href="<%= $url %>"><%= $url %></a>
     <br>
     Just input more channel URLs to add more channels to your feed.<br>
+
+    <form action="/clear-subs" method="post">
+    <button type="submit">Clear subscriptions</button>
+    </form>
 % }
 
 <br>
