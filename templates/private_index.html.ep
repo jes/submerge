@@ -2,20 +2,40 @@
 <html>
 <head>
 <title>Submerge</title>
+<style type="text/css">
+* {
+    margin: auto;
+    text-align: center;
+    max-width: 800px;
+    font-family: sans-serif;
+}
+</style>
 </head>
 <body>
-<h1>Submerge</h1>
+<a href="/"><img alt="Submerge" src="/submerge.png"></a>
+<br>
+<i>Subscribe to YouTube channels without telling Google.</i>
+<br><br>
 <p>Enter a URL for a YouTube channel and you'll get an RSS feed to subscribe to the
-corresponding channel with HookTube.</p>
+corresponding channel with <a href="https://hooktube.com/">HookTube</a>.</p>
+
 <form action="/submerge" method="post">
-<input name="url" type="text">
+<input style="width: 300px; text-align: left" name="url" type="text" placeholder="e.g. https://youtube.com/channel/...">
 <button type="submit">Submit</button>
+</form>
+
 % if (session 'channels') {
     % my $url = $config->{base_url} . '/feeds/videos.xml?channel_id=' . join(',', @{ session 'channels' });
-    <a href="<%= $url %>"><%= $url %></a>
     <br>
-    Enter more channel URLs to add to your feed.
+    Your RSS feed is <a href="<%= $url %>"><%= $url %></a>
+    <br>
+    Just input more channel URLs to add more channels to your feed.<br>
 % }
-</form>
+
+<br>
+<hr>
+<br>
+<i>Submerge is a project by <a href="https://incoherency.co.uk/">James Stanley</a>. Open source <a href="https://github.com/jes/submerge">on github</a>.</i>
+
 </body>
 </html>

@@ -110,6 +110,12 @@ post '/submerge' => sub {
         return $c->redirect_to('/');
     }
 
+    # feed url (either submerge or youtube) - just extract the channel ids from the url
+    if ($url =~ m{/feeds/videos\.xml\?channel_id=(.*)$}i) {
+        add_channel($c, $_) for split /,/, $1;
+        return $c->redirect_to('/');
+    }
+
     # user page url - fetch the page and extract the channel id from the "canonical" url
     if ($url =~ m{^https?://(?:www\.)?(?:youtube|hooktube)\.com/user/([^/]*)/?$}i) {
         # make sure to fetch from youtube.com to learn the "canonical" url
