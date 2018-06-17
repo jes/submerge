@@ -20,6 +20,7 @@ die "base_url is missing from submerge config file ($config_file)"
     unless defined $config->{base_url};
 
 my $ua = Mojo::UserAgent->new();
+$ua->max_redirects(3); # follow redirects
 
 hook before_render => sub {
     my ($c) = @_;
