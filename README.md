@@ -10,27 +10,27 @@ There's lots of good content on YouTube, but actively using YouTube allows Googl
 
 Submerge lets you subscribe to YouTube channels, with the player links going directly to HookTube.
 
+There's a public instance available at [submerge.io](https://submerge.io/), or you can self-host.
+
 ## Roadmap
 
-This is a work in progress. Currently it works well enough to provide individual RSS feeds of single channels.
+This is still a work in progress. Currently it works well enough to provide combined RSS feeds of multiple channels.
 
 Next steps are:
 
-1. A public instance and public-facing index page to explain what the project is about.
+1. A public-facing index page to explain what the project is about.
 
-2. A way to combine several feeds together so that you can subscribe to multiple channels with just one URL.
+2. A user interface to browse your subscriptions without having to go via the RSS reader.
 
-3. A user interface to browse your subscriptions without having to go via the RSS reader.
+3. Bulk-import subscriptions from YouTube
 
-4. Bulk-import subscriptions from YouTube
-
-5. A way to update your subscriptions without having to update the feed URL in the RSS reader.
+4. A way to update your subscriptions without having to update the feed URL in the RSS reader.
 
 If it gets popular, longer-term goals would include:
 
 * a caching layer so that popular requests don't get the public instance banned from YouTube
 
-* make it easy for people to run a private instance (or even an alternative public instance!) so that my public instance doesn't accumulate too much data to track people with
+* make it easier for people to run a private instance (or even an alternative public instance!) so that my public instance doesn't accumulate too much data to track people with
 
 ## Installation
 
