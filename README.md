@@ -1,4 +1,4 @@
-# Submerge
+![Submerge](public/submerge.png)
 
 Subscribe to YouTube channels without telling Google.
 
