@@ -89,6 +89,10 @@ sub add_channel {
     my ($c, $channel_id) = @_;
 
     $c->session(channels => []) if !$c->session('channels');
+
+    # do nothing if already subscribed to this channel
+    return if grep { $_->{channel_id} eq $channel_id } @{ $c->session('channels') };
+
     push @{ $c->session('channels') }, {
         name => 'Unknown Channel',
         thumbnail => 'Unknown Thumbnail',

@@ -23,6 +23,8 @@
         Your RSS feed is <a id="feed-url" href="#"><span id="feed-url-span"></span></a>
         <br>
         Just input more channel URLs to add more channels to your feed.<br>
+        Submerge remembers your subscriptions in the session cookie. If you ever want to recover your subscription list
+        without your session cookie, you can just paste the Submerge RSS feed URL.<br>
 
         <form id="clear-subs">
         <button class="btn btn-primary" type="submit">Clear subscriptions</button>
