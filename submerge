@@ -134,7 +134,7 @@ post '/subscribe' => sub {
                 add_channel($c, $1);
                 return $c->render(json => $c->session('channels'));
             } else {
-                return $c->render(text => "Error - couldn't find canonical URL in channel page");
+                return $c->render(json => {error => "Couldn't find canonical URL in user page"});
             }
         });
         return;
@@ -151,13 +151,13 @@ post '/subscribe' => sub {
                 add_channel($c, $1);
                 return $c->render(json => $c->session('channels'));
             } else {
-                return $c->render(text => "Error - couldn't find channel ID in video page");
+                return $c->render(json => {error => "Couldn't find channel ID in video page"});
             }
         });
         return;
     }
 
-    return $c->render(text => "Error - don't recognise the input url");
+    return $c->render(json => {error => "Don't recognise the input URL"});
 };
 
 post '/clear-subs' => sub {

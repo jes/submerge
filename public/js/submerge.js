@@ -17,6 +17,10 @@ $(document).ready(function() {
                 subs = r;
                 redraw_subs();
             },
+            error: function(xhr) {
+                alert("Error");
+                processing(-1);
+            },
         }); // TODO: handle errors
     }
 
@@ -44,8 +48,16 @@ $(document).ready(function() {
             method: 'POST',
             data: { url: $('#url-input').val() },
             success: function(r) {
-                subs = r;
-                redraw_subs();
+                if (r.error) {
+                    alert(r.error);
+                } else {
+                    subs = r;
+                    redraw_subs();
+                }
+                processing(-1);
+            },
+            error: function(xhr) {
+                alert("Error");
                 processing(-1);
             },
         });
@@ -59,6 +71,10 @@ $(document).ready(function() {
             success: function(r) {
                 subs = r;
                 redraw_subs();
+                processing(-1);
+            },
+            error: function(xhr) {
+                alert("Error");
                 processing(-1);
             },
         });
