@@ -39,9 +39,6 @@ get '/feeds/videos.xml' => sub {
     my $add_feed = sub {
         my ($feed) = @_;
 
-        use Data::Dumper;
-        print Dumper($feed);
-
         $nfeeds++;
         push @feeds, $feed if $feed;
 
@@ -51,8 +48,7 @@ get '/feeds/videos.xml' => sub {
                 $feeds[0]->splice($feeds[$i]);
             }
 
-            # TODO: if there's more than one feed, rewrite the title to "Submerge feed" or something, instead
-            # of just the first YouTube channel's name. (#5)
+            $feeds[0]->title('Submerge videos');
 
             $c->res->headers->content_type("application/rss+xml");
             return $c->render(data => $feeds[0]->as_xml);
