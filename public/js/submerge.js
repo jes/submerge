@@ -52,6 +52,7 @@ $(document).ready(function() {
                     alert(r.error);
                 } else {
                     subs = r;
+                    $('#url-input').val('');
                     redraw_subs();
                 }
                 processing(-1);
