@@ -2,44 +2,42 @@
 <html>
 <head>
 <title>Submerge</title>
-<style type="text/css">
-* {
-    margin: auto;
-    text-align: center;
-    max-width: 800px;
-    font-family: sans-serif;
-}
-</style>
+<link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css"/>
 </head>
 <body>
-<a href="/"><img alt="Submerge" src="/submerge.png"></a>
-<br>
-<i>Subscribe to YouTube channels without telling Google.</i>
-<br><br>
-<p>Enter a URL for a YouTube channel and you'll get an RSS feed to subscribe to the
-corresponding channel with <a href="https://hooktube.com/">HookTube</a>.</p>
-
-<form action="/submerge" method="post">
-<input style="width: 300px; text-align: left" name="url" type="text" placeholder="e.g. https://youtube.com/channel/...">
-<button type="submit">Submit</button>
-</form>
-
-% if (session 'channels') {
-    % my $url = $config->{base_url} . '/feeds/videos.xml?channel_id=' . join(',', @{ session 'channels' });
+<div class="container">
+    <a href="/"><img alt="Submerge" src="/submerge.png"></a>
     <br>
-    Your RSS feed is <a href="<%= $url %>"><%= $url %></a>
-    <br>
-    Just input more channel URLs to add more channels to your feed.<br>
+    <i>Subscribe to YouTube channels without telling Google.</i>
+    <br><br>
+    <p>Enter a URL for a YouTube channel and you'll get an RSS feed to subscribe to the
+    corresponding channel with <a href="https://hooktube.com/">HookTube</a>.</p>
 
-    <form action="/clear-subs" method="post">
-    <button type="submit">Clear subscriptions</button>
+    <form class="form-inline" id="add-channel">
+    <input class="form-control" style="width: 300px; text-align: left" id="url-input" type="text" placeholder="e.g. https://youtube.com/channel/...">
+    <button class="btn btn-primary" type="submit">Subscribe</button> <span style="display:none" id="processing">Processing...</span>
     </form>
-% }
 
-<br>
-<hr>
-<br>
-<i>Submerge is a project by <a href="https://incoherency.co.uk/">James Stanley</a>. Open source <a href="https://github.com/jes/submerge">on github</a>.</i>
+    <div id="current-subs" style="display:none">
+        <br>
+        Your RSS feed is <a id="feed-url" href="#"><span id="feed-url-span"></span></a>
+        <br>
+        Just input more channel URLs to add more channels to your feed.<br>
+
+        <form id="clear-subs">
+        <button class="btn btn-primary" type="submit">Clear subscriptions</button>
+        </form>
+    </div>
+
+    <br>
+    <hr>
+    <br>
+    <i>Submerge is a project by <a href="https://incoherency.co.uk/">James Stanley</a>. Open source <a href="https://github.com/jes/submerge">on github</a>.</i>
+</div>
+
+<script src="/js/jquery-3.3.1.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/submerge.js"></script>
 
 </body>
 </html>

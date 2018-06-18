@@ -93,10 +93,14 @@ sub add_channel {
     my ($c, $channel_id) = @_;
 
     $c->session(channels => []) if !$c->session('channels');
-    push @{ $c->session('channels') }, $channel_id;
+    push @{ $c->session('channels') }, {
+        name => 'Unknown Channel',
+        thumbnail => 'Unknown Thumbnail',
+        channel_id => $channel_id,
+    };
 }
 
-post '/submerge' => sub {
+post '/subscribe' => sub {
     my ($c) = @_;
 
     my $url = scalar $c->param('url');
@@ -108,13 +112,13 @@ post '/submerge' => sub {
     # channel url - just extract the channel id from the url
     if ($url =~ m{^https?://(?:www\.)?(?:youtube|hooktube)\.com/channel/([^/]*)/?$}i) {
         add_channel($c, $1);
-        return $c->redirect_to('/');
+        return $c->render(json => $c->session('channels'));
     }
 
     # feed url (either submerge or youtube) - just extract the channel ids from the url
     if ($url =~ m{/feeds/videos\.xml\?channel_id=(.*)$}i) {
         add_channel($c, $_) for split /,/, $1;
-        return $c->redirect_to('/');
+        return $c->render(json => $c->session('channels'));
     }
 
     # user page url - fetch the page and extract the channel id from the "canonical" url
@@ -126,7 +130,7 @@ post '/submerge' => sub {
 
             if ($tx->res->body =~ m{<link rel="canonical" href="https?://(?:www\.)?youtube\.com/channel/([^/"]*)/?"}i) {
                 add_channel($c, $1);
-                return $c->redirect_to('/');
+                return $c->render(json => $c->session('channels'));
             } else {
                 return $c->render(text => "Error - couldn't find canonical URL in channel page");
             }
@@ -143,7 +147,7 @@ post '/submerge' => sub {
 
             if ($tx->res->body =~ m{<meta itemprop="channelId" content="([^"]*)">}) {
                 add_channel($c, $1);
-                return $c->redirect_to('/');
+                return $c->render(json => $c->session('channels'));
             } else {
                 return $c->render(text => "Error - couldn't find channel ID in video page");
             }
@@ -157,7 +161,12 @@ post '/submerge' => sub {
 post '/clear-subs' => sub {
     my ($c) = @_;
     $c->session(channels => undef);
-    return $c->redirect_to('/');
+    return $c->render(json => []);
+};
+
+get '/subs' => sub {
+    my ($c) = @_;
+    return $c->render(json => $c->session('channels'));
 };
 
 app->config($config->{mojo_config});
