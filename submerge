@@ -44,11 +44,13 @@ get '/feeds/videos.xml' => sub {
 
         if ($nfeeds == @channels) {
             # splice all of the feeds into one
+            # TODO: re-order the feed so it's always sorted by date
             for my $i (1 .. $nfeeds-1) {
                 $feeds[0]->splice($feeds[$i]);
             }
 
             $feeds[0]->title('Submerge videos');
+            $feeds[0]->generator("Submerge at $config->{base_url}/");
 
             $c->res->headers->content_type("application/rss+xml");
             return $c->render(data => $feeds[0]->as_xml);
