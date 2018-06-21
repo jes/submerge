@@ -84,7 +84,7 @@ $(document).ready(function() {
                     }
                 }
 
-                thumbshtml += "<div style=\"margin:2px; display: inline-block; width: 360px; height: 77px; overflow:hidden; text-overflow: ellipsis; font-size: 0.8em\"><a href=\"" + htmlEncode(item.link) + "\"><img style=\"width: 100px; float: left; margin: 2px\" src=\"" + htmlEncode(item.thumbnail) + "\">" + htmlEncode(item.title) + "</a><br><a href=\"" + htmlEncode(item.authoruri) + "\">" + htmlEncode(item.author) + "</a><br>" + htmlEncode(item.published) + "</div>";
+                thumbshtml += "<div style=\"margin:2px; display: inline-block; width: 360px; height: 77px; overflow:hidden; text-overflow: ellipsis; font-size: 0.8em\"><a href=\"" + htmlEncode(item.link) + "\"><img style=\"width: 100px; float: left; margin: 2px\" src=\"" + htmlEncode(item.thumbnail) + "\">" + htmlEncode(item.title) + "</a><br><a class=\"text-muted\" href=\"" + htmlEncode(item.authoruri) + "\">" + htmlEncode(item.author) + "</a><br><span class=\"text-muted\">" + htmlEncode(new Date(item.published).toDateString()) + "</span></div>";
                 FEED = $this;
             });
 
