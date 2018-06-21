@@ -76,7 +76,7 @@ sub get_feed {
     # get the feed out of the cache if we have it
     if (exists $feed_cache{$channel_id} && time < $feed_cache{$channel_id}{expire}) {
         my $body = $feed_cache{$channel_id}{body};
-        return $cb->(XML::Feed->parse(\$body);
+        return $cb->(XML::Feed->parse(\$body));
     }
 
     $ua->get('https://www.youtube.com/feeds/videos.xml?channel_id=' . url_escape($channel_id) => sub {

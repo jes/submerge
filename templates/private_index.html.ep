@@ -10,8 +10,8 @@
     <br>
     <i>Subscribe to YouTube channels without telling Google.</i>
     <br><br>
-    <p>Enter a URL for a YouTube channel and you'll get an RSS feed to subscribe to the
-    corresponding channel with <a href="https://hooktube.com/">HookTube</a>.</p>
+    <p>Enter a URL for a YouTube channel and you'll get an RSS feed to subscribe
+    with <a href="https://hooktube.com/">HookTube</a>.</p>
 
     <form class="form-inline" id="add-channel">
     <input class="form-control" style="width: 300px; text-align: left" id="url-input" type="text" placeholder="e.g. https://youtube.com/channel/...">
@@ -20,15 +20,17 @@
 
     <div id="current-subs" style="display:none">
         <br>
+        Just input more channel URLs to add more channels to your feed.<br><br>
+        You're subscribed to <span id="channels-span"></span>.<br>
         Your RSS feed is <a id="feed-url" href="#"><span id="feed-url-span"></span></a>
-        <br>
-        Just input more channel URLs to add more channels to your feed.<br>
-        Submerge remembers your subscriptions in the session cookie. If you ever want to recover your subscription list
-        without your session cookie, you can just paste the Submerge RSS feed URL.<br>
-
         <form id="clear-subs">
         <button class="btn btn-primary" type="submit">Clear subscriptions</button>
         </form>
+        <br>
+        <i>Submerge remembers your subscriptions in the session cookie. If you ever want to recover your subscription list
+        without your session cookie, you can paste the Submerge RSS feed URL in the input box.</i><br>
+
+        <div id="thumbs"></div>
     </div>
 
     <br>

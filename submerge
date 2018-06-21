@@ -44,15 +44,14 @@ get '/feeds/videos.xml' => sub {
 
         if ($nfeeds == @channels) {
             # splice all of the feeds into one
-            # TODO: re-order the feed so it's always sorted by date
+            # TODO: re-order the feed so it's always sorted by "published" date
             for my $i (1 .. $nfeeds-1) {
                 $feeds[0]->splice($feeds[$i]);
             }
 
             $feeds[0]->title('Submerge videos');
-            $feeds[0]->generator("Submerge at $config->{base_url}/");
 
-            # TODO: rewrite link rel="self"? worked like this before refactor:
+            # TODO: rewrite <link rel="self" ...>? worked like this before refactor:
             #   my $this_url = $c->req->url;
             #   $body =~ s/<link rel=\"self\" href=\"[^"]*\"\/>/<link rel="self" href="$config->{base_url}$this_url"\/>/g;
 
@@ -82,18 +81,23 @@ get '/' => sub {
 get '/submerge' => sub { shift->redirect_to('/'); };
 
 sub add_channel {
-    my ($c, $channel_id) = @_;
+    my ($c, $channel_id, $cb) = @_;
 
     $c->session(channels => []) if !$c->session('channels');
 
     # do nothing if already subscribed to this channel
-    return if grep { $_->{channel_id} eq $channel_id } @{ $c->session('channels') };
+    return $cb->() if grep { $_->{channel_id} eq $channel_id } @{ $c->session('channels') };
 
-    push @{ $c->session('channels') }, {
-        name => 'Unknown Channel',
-        thumbnail => 'Unknown Thumbnail',
-        channel_id => $channel_id,
-    };
+    Submerge::YouTubeFeed->get_feed($channel_id, sub {
+        my ($feed) = @_;
+
+        push @{ $c->session('channels') }, {
+            name => $feed->title,
+            thumbnail => 'Unknown Thumbnail',
+            channel_id => $channel_id,
+        };
+        $cb->();
+    });
 }
 
 post '/subscribe' => sub {
@@ -106,8 +110,14 @@ post '/subscribe' => sub {
             return $c->render(json => {error => $error});
         } else {
             # TODO: check that the generated rss feeds look sound (even if there are no videos) before giving it to the user
-            add_channel($c, $_) for @$channel_ids;
-            return $c->render(json => $c->session('channels'));
+            my $remaining = @$channel_ids;
+            for my $id (@$channel_ids) {
+                add_channel($c, $id, sub {
+                    $remaining--;
+                    return $c->render(json => $c->session('channels'))
+                        if $remaining == 0;
+                });
+            }
         }
     });
 };
@@ -116,6 +126,12 @@ post '/clear-subs' => sub {
     my ($c) = @_;
     $c->session(channels => undef);
     return $c->render(json => []);
+};
+
+post '/unsubscribe' => sub {
+    my ($c) = @_;
+    $c->session(channels => [grep {$_->{channel_id} ne scalar($c->param('channel_id'))} @{ $c->session('channels') }]);
+    return $c->render(json => $c->session('channels'));
 };
 
 get '/subs' => sub {
