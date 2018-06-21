@@ -79,9 +79,7 @@ sub channels {
 }
 
 sub add_channel {
-    my ($self, $channel_id, $cb) = @_;
-
-    return $cb->() if $self->have_channel($channel_id);
+    my ($self, $channel_id) = @_;
 
     Submerge::DB->dbh->do(qq{
         INSERT INTO subscriptions
