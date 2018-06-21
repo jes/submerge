@@ -1,7 +1,12 @@
-var FEED;
 $(document).ready(function() {
     var subs = [];
     var running = 0;
+
+    var token = localStorage.getItem("submerge-token");
+    if (token === undefined) {
+        token = 'fdsfdsaf';
+        localStorage.setItem("submerge-token", token);
+    }
 
     /* https://stackoverflow.com/questions/1219860/html-encoding-lost-when-attribute-read-from-input-field#1219983 */
     function htmlEncode(value){
@@ -24,7 +29,7 @@ $(document).ready(function() {
     }
 
     function fetch_subs() {
-        $.ajax("/subs", {
+        $.ajax("/subs/" + token, {
             success: function(r) {
                 subs = r;
                 redraw_subs();
@@ -95,7 +100,7 @@ $(document).ready(function() {
     $('#add-channel').submit(function(e) {
         e.preventDefault();
         processing(1);
-        $.ajax('/subscribe', {
+        $.ajax('/subscribe/' + token, {
             method: 'POST',
             data: { url: $('#url-input').val() },
             success: function(r) {
@@ -118,7 +123,7 @@ $(document).ready(function() {
     $('#clear-subs').submit(function(e) {
         e.preventDefault();
         processing(1);
-        $.ajax('/clear-subs', {
+        $.ajax('/clear-subs/' + token, {
             method: 'POST',
             success: function(r) {
                 subs = r;

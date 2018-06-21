@@ -7,8 +7,9 @@ use warnings;
 use lib 'lib';
 
 use Mojolicious::Lite;
-use Submerge::YouTubeFeed;
 use Submerge::Feed;
+use Submerge::RSS;
+use Submerge::YouTubeFeed;
 use YAML;
 
 # config is in production.yaml or development.yaml
@@ -28,6 +29,15 @@ hook before_render => sub {
     $c->stash(config => $config);
 };
 
+helper feed => sub {
+    my ($c) = @_;
+
+    my $token = scalar $c->param('token');
+    die "no token" if !$token;
+
+    return Submerge::Feed->new($token);
+};
+
 # URLs like /feeds/videos.xml?channel_id=UCzr30osBdTmuFUS8IfXtXmg
 # We're just copying the YouTube URL format
 get '/feeds/videos.xml' => sub {
@@ -35,7 +45,7 @@ get '/feeds/videos.xml' => sub {
 
     my @channels = split /,/, scalar $c->param('channel_id');
 
-    my $submerge_feed = Submerge::Feed->new();
+    my $submerge_feed = Submerge::RSS->new();
 
     my @feeds;
     my $nfeeds = 0;
@@ -61,6 +71,12 @@ get '/feeds/videos.xml' => sub {
             $add_feed->($feed);
         });
     }
+};
+
+get '/rss/:token' => sub {
+    my ($c) = @_;
+    # TODO: temporary redirect to /feeds/videos.xml
+    # TODO: just render $c->feed->rss->as_xml
 };
 
 get '/' => sub {
@@ -98,7 +114,7 @@ sub add_channel {
     });
 }
 
-post '/subscribe' => sub {
+post '/subscribe/:token' => sub {
     my ($c) = @_;
 
     Submerge::YouTubeFeed->get_channel_id(scalar $c->param('url'), sub {
@@ -108,36 +124,30 @@ post '/subscribe' => sub {
             return $c->render(json => {error => $error});
         } else {
             # TODO: check that the generated rss feeds look sound (even if there are no videos) before giving it to the user
-            my $remaining = @$channel_ids;
-            for my $id (@$channel_ids) {
-                add_channel($c, $id, sub {
-                    $remaining--;
-                    return $c->render(json => $c->session('channels'))
-                        if $remaining == 0;
-                });
-            }
+            $c->feed->add_channel($_) for @$channel_ids;
+            return $c->redirect_to('/subs/' . (scalar $c->param('token')));
         }
     });
 };
 
-post '/clear-subs' => sub {
+post '/clear-subs/:token' => sub {
     my ($c) = @_;
-    $c->session(channels => undef);
-    return $c->render(json => []);
+    $c->feed->clear_channels;
+    return $c->redirect_to('/subs/' . (scalar $c->param('token')));
 };
 
-post '/unsubscribe' => sub {
+post '/unsubscribe/:token' => sub {
     my ($c) = @_;
-    $c->session(channels => [grep {$_->{channel_id} ne scalar($c->param('channel_id'))} @{ $c->session('channels') }]);
-    return $c->render(json => $c->session('channels'));
+    $c->feed->remove_channel(scalar $c->param('channel_id'));
+    return $c->redirect_to('/subs/' . (scalar $c->param('token')));
 };
 
-get '/bulk-import' => sub {
+get '/bulk-import/:token' => sub {
     my ($c) = @_;
     return $c->render('bulk-import');
 };
 
-post '/bulk-import' => sub {
+post '/bulk-import/:token' => sub {
     my ($c) = @_;
 
     my $opml = scalar $c->param('opml');
@@ -149,22 +159,18 @@ post '/bulk-import' => sub {
     my @channel_ids;
 
     while ($data =~ /\/feeds\/videos.xml\?channel_id=([^"]*)/g) {
-        push @channel_ids, $1;
+        $c->feed->add_channel($1);
     }
 
-    my $remaining = @channel_ids;
-    for my $id (@channel_ids) {
-        add_channel($c, $id, sub {
-            $remaining--;
-            return $c->redirect_to('/')
-                if $remaining == 0;
-        });
-    }
+    return $c->redirect_to('/');
 };
 
-get '/subs' => sub {
+get '/subs/:token' => sub {
     my ($c) = @_;
-    return $c->render(json => $c->session('channels'));
+
+    $c->feed->channels(sub {
+        return $c->render(json => [@_]);
+    });
 };
 
 app->config($config->{mojo_config});

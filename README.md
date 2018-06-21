@@ -37,7 +37,7 @@ If it gets popular, longer-term goals would include:
 It's a [Mojolicious](https://mojolicious.org/) application. On Ubuntu, you should be able to install the dependencies with:
 
     sudo apt install cpanminus libxml2-dev
-    sudo cpanm Mojolicious XML::Feed YAML
+    sudo cpanm DBD::SQLite Mojolicious XML::Feed YAML
 
 There's not yet a systemd unit file, but you can run it in development mode with:
 
