@@ -5,6 +5,7 @@ use warnings;
 
 use Mojo::UserAgent;
 use Mojo::Util qw(url_escape);
+use Submerge::DB;
 use XML::Feed;
 
 my %feed_cache;
@@ -97,9 +98,19 @@ sub get_feed {
             expire => time + 3600, # 1 hr
         };
 
-        print STDERR "$body\n" if !XML::Feed->parse(\$body);
+        my $feed = XML::Feed->parse(\$body);
 
-        $cb->(XML::Feed->parse(\$body));
+        if ($feed) {
+            Submerge::DB->dbh->do(qq{
+                INSERT OR REPLACE INTO channel_names
+                (channel_id, name)
+                VALUES (?, ?)
+            }, {}, $channel_id, $feed->title);
+        } else {
+            print STDERR "$body\n";
+        }
+
+        $cb->($feed);
     });
 }
 
