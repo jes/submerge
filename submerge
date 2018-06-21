@@ -4,10 +4,10 @@
 use strict;
 use warnings;
 
+use lib 'lib';
+
 use Mojolicious::Lite;
-use Mojo::UserAgent;
-use Mojo::Util qw(url_escape);
-use XML::Feed;
+use Submerge::YouTubeFeed;
 use YAML;
 
 # config is in production.yaml or development.yaml
@@ -18,9 +18,6 @@ my $config = YAML::LoadFile($config_file);
 
 die "base_url is missing from submerge config file ($config_file)"
     unless defined $config->{base_url};
-
-my $ua = Mojo::UserAgent->new();
-$ua->max_redirects(3); # follow redirects
 
 hook before_render => sub {
     my ($c) = @_;
@@ -52,25 +49,19 @@ get '/feeds/videos.xml' => sub {
             $feeds[0]->title('Submerge videos');
             $feeds[0]->generator("Submerge at $config->{base_url}/");
 
+            # TODO: rewrite link rel="self"? worked like this before refactor:
+            #   my $this_url = $c->req->url;
+            #   $body =~ s/<link rel=\"self\" href=\"[^"]*\"\/>/<link rel="self" href="$config->{base_url}$this_url"\/>/g;
+
             $c->res->headers->content_type("application/rss+xml");
             return $c->render(data => $feeds[0]->as_xml);
         }
     };
 
     for my $channel_id (@channels) {
-        $ua->get('https://www.youtube.com/feeds/videos.xml?channel_id=' . url_escape($channel_id) => sub {
-            my ($ua, $tx) = @_;
-            my $body = $tx->res->body;
-
-            # processing xml with regex ftw
-            $body =~ s/youtube\.com/hooktube.com/g;
-            my $this_url = $c->req->url;
-            $body =~ s/<link rel=\"self\" href=\"[^"]*\"\/>/<link rel="self" href="$config->{base_url}$this_url"\/>/g;
-
-            # TODO: replace URLs like https://i3.ytimg.com/vi/nD_6YEXFJ1c/hqdefault.jpg with something that we proxy
-            # so as not to leak IP addresses to Google when people view thumbnails (#4)
-
-            $add_feed->(XML::Feed->parse(\$body));
+        Submerge::YouTubeFeed->get_feed($channel_id, sub {
+            my ($feed) = @_;
+            $add_feed->($feed);
         });
     }
 };
@@ -105,59 +96,17 @@ sub add_channel {
 post '/subscribe' => sub {
     my ($c) = @_;
 
-    my $url = scalar $c->param('url');
-    $url =~ s/^\s*//;
-    $url =~ s/\s*$//;
+    Submerge::YouTubeFeed->get_channel_id(scalar $c->param('url'), sub {
+        my ($channel_ids, $error) = @_;
 
-    # TODO: in all cases, check that the generated rss feed looks sound (even if there are no videos) before giving it to the user
-
-    # channel url - just extract the channel id from the url
-    if ($url =~ m{^https?://(?:www\.)?(?:youtube|hooktube)\.com/channel/([^/]*)/?$}i) {
-        add_channel($c, $1);
-        return $c->render(json => $c->session('channels'));
-    }
-
-    # feed url (either submerge or youtube) - just extract the channel ids from the url
-    if ($url =~ m{/feeds/videos\.xml\?channel_id=(.*)$}i) {
-        add_channel($c, $_) for split /,/, $1;
-        return $c->render(json => $c->session('channels'));
-    }
-
-    # user page url - fetch the page and extract the channel id from the "canonical" url
-    if ($url =~ m{^https?://(?:www\.)?(?:youtube|hooktube)\.com/user/([^/]*)/?$}i) {
-        # make sure to fetch from youtube.com to learn the "canonical" url
-        $url =~ s/hooktube\.com/youtube.com/gi;
-        $ua->get($url => sub {
-            my ($ua, $tx) = @_;
-
-            if ($tx->res->body =~ m{<link rel="canonical" href="https?://(?:www\.)?youtube\.com/channel/([^/"]*)/?"}i) {
-                add_channel($c, $1);
-                return $c->render(json => $c->session('channels'));
-            } else {
-                return $c->render(json => {error => "Couldn't find canonical URL in user page"});
-            }
-        });
-        return;
-    }
-
-    # video url
-    if ($url =~ m{^https?://(?:www\.)?(?:youtube|hooktube)\.com/watch}i) {
-        # make sure to fetch from youtube.com to learn the channel id
-        $url =~ s/hooktube\.com/youtube.com/gi;
-        $ua->get($url => sub {
-            my ($ua, $tx) = @_;
-
-            if ($tx->res->body =~ m{<meta itemprop="channelId" content="([^"]*)">}) {
-                add_channel($c, $1);
-                return $c->render(json => $c->session('channels'));
-            } else {
-                return $c->render(json => {error => "Couldn't find channel ID in video page"});
-            }
-        });
-        return;
-    }
-
-    return $c->render(json => {error => "Don't recognise the input URL"});
+        if ($error) {
+            return $c->render(json => {error => $error});
+        } else {
+            # TODO: check that the generated rss feeds look sound (even if there are no videos) before giving it to the user
+            add_channel($c, $_) for @$channel_ids;
+            return $c->render(json => $c->session('channels'));
+        }
+    });
 };
 
 post '/clear-subs' => sub {
