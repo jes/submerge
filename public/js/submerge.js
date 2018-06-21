@@ -42,7 +42,7 @@ $(document).ready(function() {
         var names = [];
         for (var i = 0; i < subs.length; i++) {
             ids.push(subs[i].channel_id);
-            names.push("<a href=\"/channel/" + escape(subs[i].channel_id) + "\">" + htmlEncode(subs[i].name) + "</a>");
+            names.push("<a href=\"https://hooktube.com/channel/" + escape(subs[i].channel_id) + "\">" + htmlEncode(subs[i].name) + "</a>");
         }
         url += ids.join(",");
         $('#feed-url').attr('href', url);
@@ -64,10 +64,11 @@ $(document).ready(function() {
                 var $this = $(this);
                 var item = {
                         title: $this.find("title").text(),
-                        link: $this.find("link").text(),
+                        link: $this.find("link")[0].attributes.href.value,
                         description: $this.find("description").text(),
                         published: $this.find("published").text(),
                         thumbnail: $this.find("media:thumbnail").text(),
+                        author: $this.find("name").text(),
                 };
 
                 // XXX: $this.find() doesn't work for element names with a colon in, so
@@ -82,7 +83,7 @@ $(document).ready(function() {
                     }
                 }
 
-                thumbshtml += "<img src=\"" + item.thumbnail + "\">";
+                thumbshtml += "<div style=\"margin:2px; display: inline-block; width: 360px; border: solid 1px #aaa\"><a href=\"" + htmlEncode(item.link) + "\"><img style=\"width: 100px; float: left\" src=\"" + htmlEncode(item.thumbnail) + "\">" + htmlEncode(item.title) + "</a><br>" + htmlEncode(item.author) + "<br>" + htmlEncode(item.published) + "</div>";
                 FEED = $this;
             });
 
