@@ -1,3 +1,7 @@
+# submerge configuration
+#
+# for production use, copy development.yaml to production.yaml and edit accordingly
+
 # base url for absolute urls - no trailing slash
 base_url: 'http://localhost:3000'
 
@@ -6,3 +10,10 @@ max_feed_cache: 10000
 
 # whether or not to show the public-facing home page
 public: 0
+
+# mojolicious configuration (example)
+# mojo_config:
+#     hypnotoad:
+#         listen:
+#             - http://*:9007
+#         workers: 2
