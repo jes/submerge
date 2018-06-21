@@ -13,6 +13,7 @@ my $MAX_FEED_CACHE = 10000;
 
 my $ua = Mojo::UserAgent->new();
 $ua->max_redirects(3); # follow redirects
+$ua->max_connections(3); # more than this seems to cause problems
 
 sub max_feed_cache {
     my ($pkg, $n) = @_;

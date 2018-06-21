@@ -4,7 +4,15 @@
 
 3.) Upload the file here:<br>
 
-<form enctype="multipart/form-data" method="post">
+<form id="importform" enctype="multipart/form-data" method="post">
     <input type="file" name="opml"><br>
     <button type="submit">Upload</button>
 </form>
+
+<script src="/js/jquery-3.3.1.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+    // XXX: make sure submerge-token is set first
+    $('#importform').attr('action', '/bulk-import/' + localStorage.getItem('submerge-token'));
+</script>

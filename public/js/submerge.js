@@ -3,9 +3,19 @@ $(document).ready(function() {
     var running = 0;
 
     var token = localStorage.getItem("submerge-token");
-    if (token === undefined) {
-        token = 'fdsfdsaf';
+    if (token == undefined) {
+        token = random_token();
         localStorage.setItem("submerge-token", token);
+    }
+
+    // XXX: is this uniform enough?
+    function random_token() {
+        var s = '';
+        var alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+        for (var i = 0; i < 16; i++) {
+            s += alphabet[Math.round(Math.random() * alphabet.length)];
+        }
+        return s;
     }
 
     /* https://stackoverflow.com/questions/1219860/html-encoding-lost-when-attribute-read-from-input-field#1219983 */

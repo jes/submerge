@@ -142,7 +142,7 @@ post '/unsubscribe/:token' => sub {
     return $c->redirect_to('/subs/' . (scalar $c->param('token')));
 };
 
-get '/bulk-import/:token' => sub {
+get '/bulk-import' => sub {
     my ($c) = @_;
     return $c->render('bulk-import');
 };

@@ -72,7 +72,7 @@ sub channels {
         Submerge::YouTubeFeed->get_feed($id, sub {
             my ($feed) = @_;
 
-            $name_for{$id} = $feed->title;
+            $name_for{$id} = $feed->title if $feed;
             $call_cb->() if ++$nfetched == @must_fetch;
         });
     }

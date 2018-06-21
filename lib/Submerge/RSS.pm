@@ -26,6 +26,8 @@ sub feed {
 sub add_feed {
     my ($self, $feed) = @_;
 
+    return if !$feed;
+
     my @entries = ($self->{feed}->entries, $feed->entries);
     $self->{feed} = XML::Feed->new();
 
