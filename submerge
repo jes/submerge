@@ -8,6 +8,7 @@ use lib 'lib';
 
 use Mojolicious::Lite;
 use Submerge::YouTubeFeed;
+use Submerge::Feed;
 use YAML;
 
 # config is in production.yaml or development.yaml
@@ -34,29 +35,23 @@ get '/feeds/videos.xml' => sub {
 
     my @channels = split /,/, scalar $c->param('channel_id');
 
+    my $submerge_feed = Submerge::Feed->new();
+
     my @feeds;
     my $nfeeds = 0;
     my $add_feed = sub {
         my ($feed) = @_;
 
+        $submerge_feed->add_feed($feed);
+
         $nfeeds++;
-        push @feeds, $feed if $feed;
-
         if ($nfeeds == @channels) {
-            # splice all of the feeds into one
-            # TODO: re-order the feed so it's always sorted by "published" date
-            for my $i (1 .. $nfeeds-1) {
-                $feeds[0]->splice($feeds[$i]);
-            }
-
-            $feeds[0]->title('Submerge videos');
-
-            # TODO: rewrite <link rel="self" ...>? worked like this before refactor:
-            #   my $this_url = $c->req->url;
-            #   $body =~ s/<link rel=\"self\" href=\"[^"]*\"\/>/<link rel="self" href="$config->{base_url}$this_url"\/>/g;
+            my $this_url = $c->req->url;
+            my $send_feed = $submerge_feed->feed;
+            $send_feed->self_link("$config->{base_url}$this_url");
 
             $c->res->headers->content_type("application/rss+xml");
-            return $c->render(data => $feeds[0]->as_xml);
+            return $c->render(data => $send_feed->as_xml);
         }
     };
 
