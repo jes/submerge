@@ -83,7 +83,7 @@ $(document).ready(function() {
                     }
                 }
 
-                thumbshtml += "<div style=\"margin:2px; display: inline-block; width: 360px; border: solid 1px #aaa\"><a href=\"" + htmlEncode(item.link) + "\"><img style=\"width: 100px; float: left\" src=\"" + htmlEncode(item.thumbnail) + "\">" + htmlEncode(item.title) + "</a><br>" + htmlEncode(item.author) + "<br>" + htmlEncode(item.published) + "</div>";
+                thumbshtml += "<div style=\"margin:2px; display: inline-block; width: 360px; height: 77px; overflow:hidden; text-overflow: ellipsis; font-size: 0.8em\"><a href=\"" + htmlEncode(item.link) + "\"><img style=\"width: 100px; float: left; margin: 2px\" src=\"" + htmlEncode(item.thumbnail) + "\">" + htmlEncode(item.title) + "</a><br>" + htmlEncode(item.author) + "<br>" + htmlEncode(item.published) + "</div>";
                 FEED = $this;
             });
 
