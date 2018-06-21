@@ -32,6 +32,8 @@ If it gets popular, longer-term goals would include:
 
 * make it easier for people to run a private instance (or even an alternative public instance!) so that my public instance doesn't accumulate too much data to track people with
 
+* support other video hosting platforms
+
 ## Installation
 
 It's a [Mojolicious](https://mojolicious.org/) application. On Ubuntu, you should be able to install the dependencies with:
