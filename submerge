@@ -86,11 +86,14 @@ sub add_channel {
     Submerge::YouTubeFeed->get_feed($channel_id, sub {
         my ($feed) = @_;
 
-        push @{ $c->session('channels') }, {
-            name => $feed->title,
-            thumbnail => 'Unknown Thumbnail',
-            channel_id => $channel_id,
-        };
+        if ($feed) {
+            push @{ $c->session('channels') }, {
+                name => $feed->title,
+                channel_id => $channel_id,
+            };
+        } else {
+            # or else what?
+        }
         $cb->();
     });
 }
@@ -127,6 +130,36 @@ post '/unsubscribe' => sub {
     my ($c) = @_;
     $c->session(channels => [grep {$_->{channel_id} ne scalar($c->param('channel_id'))} @{ $c->session('channels') }]);
     return $c->render(json => $c->session('channels'));
+};
+
+get '/bulk-import' => sub {
+    my ($c) = @_;
+    return $c->render('bulk-import');
+};
+
+post '/bulk-import' => sub {
+    my ($c) = @_;
+
+    my $opml = scalar $c->param('opml');
+    die "no file" if !$opml;
+    my $data = $opml->slurp;
+    die "no bytes" if !$data;
+    die "not opml" if $data !~ /^<opml/;
+
+    my @channel_ids;
+
+    while ($data =~ /\/feeds\/videos.xml\?channel_id=([^"]*)/g) {
+        push @channel_ids, $1;
+    }
+
+    my $remaining = @channel_ids;
+    for my $id (@channel_ids) {
+        add_channel($c, $id, sub {
+            $remaining--;
+            return $c->redirect_to('/')
+                if $remaining == 0;
+        });
+    }
 };
 
 get '/subs' => sub {

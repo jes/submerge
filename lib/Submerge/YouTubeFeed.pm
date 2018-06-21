@@ -97,6 +97,8 @@ sub get_feed {
             expire => time + 3600, # 1 hr
         };
 
+        print STDERR "$body\n" if !XML::Feed->parse(\$body);
+
         $cb->(XML::Feed->parse(\$body));
     });
 }

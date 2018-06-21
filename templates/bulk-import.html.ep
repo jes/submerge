@@ -1,0 +1,10 @@
+1.) Go to https://youtube.com/subscription_manager<br>
+
+2.) Scroll to the bottom, click "Export to RSS readers", and save the file<br>
+
+3.) Upload the file here:<br>
+
+<form enctype="multipart/form-data" method="post">
+    <input type="file" name="opml"><br>
+    <button type="submit">Upload</button>
+</form>
