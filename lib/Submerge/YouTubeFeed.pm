@@ -7,9 +7,17 @@ use Mojo::UserAgent;
 use Mojo::Util qw(url_escape);
 use XML::Feed;
 
+my %feed_cache;
+my $MAX_FEED_CACHE = 10000;
+
 my $ua = Mojo::UserAgent->new();
 $ua->max_redirects(3); # follow redirects
 
+sub max_feed_cache {
+    my ($pkg, $n) = @_;
+    $MAX_FEED_CACHE = $n if defined $n;
+    return $MAX_FEED_CACHE;
+}
 
 sub get_channel_id {
     my ($pkg, $url, $cb) = @_;
@@ -65,6 +73,12 @@ sub get_channel_id {
 sub get_feed {
     my ($pkg, $channel_id, $cb) = @_;
 
+    # get the feed out of the cache if we have it
+    if (exists $feed_cache{$channel_id} && time < $feed_cache{$channel_id}{expire}) {
+        my $body = $feed_cache{$channel_id}{body};
+        return $cb->(XML::Feed->parse(\$body);
+    }
+
     $ua->get('https://www.youtube.com/feeds/videos.xml?channel_id=' . url_escape($channel_id) => sub {
         my ($ua, $tx) = @_;
         my $body = $tx->res->body;
@@ -74,6 +88,14 @@ sub get_feed {
 
         # TODO: replace URLs like https://i3.ytimg.com/vi/nD_6YEXFJ1c/hqdefault.jpg with something that we proxy
         # so as not to leak IP addresses to Google when people view thumbnails (#4)
+
+        # empty the cache whenever it gets too large
+        %feed_cache = () if keys %feed_cache > $MAX_FEED_CACHE;
+        # put this entry in the cache
+        $feed_cache{$channel_id} = {
+            body => $body,
+            expire => time + 3600, # 1 hr
+        };
 
         $cb->(XML::Feed->parse(\$body));
     });

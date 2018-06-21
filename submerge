@@ -19,6 +19,9 @@ my $config = YAML::LoadFile($config_file);
 die "base_url is missing from submerge config file ($config_file)"
     unless defined $config->{base_url};
 
+Submerge::YouTubeFeed->max_feed_cache($config->{max_feed_cache})
+    if defined $config->{max_feed_cache};
+
 hook before_render => sub {
     my ($c) = @_;
     $c->stash(config => $config);
