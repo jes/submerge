@@ -20,11 +20,9 @@ Next steps are:
 
 1. A public-facing index page to explain what the project is about.
 
-2. A user interface to browse your subscriptions without having to go via the RSS reader.
+2. Bulk-import subscriptions from YouTube
 
-3. Bulk-import subscriptions from YouTube
-
-4. A way to update your subscriptions without having to update the feed URL in the RSS reader.
+3. A way to update your subscriptions without having to update the feed URL in the RSS reader.
 
 If it gets popular, longer-term goals would include:
 
