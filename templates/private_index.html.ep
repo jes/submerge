@@ -27,8 +27,8 @@
         <button class="btn btn-primary" type="submit">Clear subscriptions</button>
         </form>
         <br>
-        <i>Submerge remembers your subscriptions in the session cookie. If you ever want to recover your subscription list
-        without your session cookie, you can paste the Submerge RSS feed URL in the input box.</i><br>
+        <i>Submerge remembers your subscriptions in localStorage. If you ever want to recover your subscription list
+        without your localStorage, you can paste the Submerge RSS feed URL in the input box.</i><br>
 
         <div id="thumbs"></div>
     </div>
